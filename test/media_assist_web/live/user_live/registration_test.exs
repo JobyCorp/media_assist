@@ -4,12 +4,15 @@ defmodule MediaAssistWeb.UserLive.RegistrationTest do
   import Phoenix.LiveViewTest
   import MediaAssist.AccountsFixtures
 
+  alias MediaAssist.Accounts
+
   describe "Registration page" do
     test "renders registration page", %{conn: conn} do
       {:ok, _lv, html} = live(conn, ~p"/users/register")
 
       assert html =~ "Register"
       assert html =~ "Log in"
+      assert html =~ "Password"
     end
 
     test "redirects if already logged in", %{conn: conn} do
@@ -28,37 +31,40 @@ defmodule MediaAssistWeb.UserLive.RegistrationTest do
       result =
         lv
         |> element("#registration_form")
-        |> render_change(user: %{"email" => "with spaces"})
+        |> render_change(user: %{"email" => "with spaces", "password" => "short"})
 
-      assert result =~ "Register"
       assert result =~ "must have the @ sign and no spaces"
+      assert result =~ "should be at least 12 character(s)"
     end
   end
 
   describe "register user" do
-    test "creates account but does not log in", %{conn: conn} do
+    test "creates a confirmed account and logs it in", %{conn: conn} do
       {:ok, lv, _html} = live(conn, ~p"/users/register")
 
       email = unique_user_email()
       form = form(lv, "#registration_form", user: valid_user_attributes(email: email))
+      render_submit(form)
 
-      {:ok, _lv, html} =
-        render_submit(form)
-        |> follow_redirect(conn, ~p"/users/log-in")
+      conn = follow_trigger_action(form, conn)
+      assert redirected_to(conn) == ~p"/"
+      assert get_session(conn, :user_token)
+      assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "Account created successfully!"
 
-      assert html =~
-               ~r/An email was sent to .*, please access it to confirm your account/
+      user = Accounts.get_user_by_email(email)
+      assert %DateTime{} = user.confirmed_at
+      assert user.hashed_password
     end
 
     test "renders errors for duplicated email", %{conn: conn} do
-      {:ok, lv, _html} = live(conn, ~p"/users/register")
+      %{email: email} = user_fixture()
 
-      user = user_fixture(%{email: "test@email.com"})
+      {:ok, lv, _html} = live(conn, ~p"/users/register")
 
       result =
         lv
         |> form("#registration_form",
-          user: %{"email" => user.email}
+          user: %{"email" => email, "password" => valid_user_password()}
         )
         |> render_submit()
 

@@ -1,4 +1,10 @@
 defmodule MediaAssistWeb.UserLive.Registration do
+  @moduledoc """
+  Email + password sign-up, no email verification. On success the form
+  posts itself to the session controller (`phx-trigger-action`) so the
+  new account is logged in immediately.
+  """
+
   use MediaAssistWeb, :live_view
 
   alias MediaAssist.Accounts
@@ -22,7 +28,15 @@ defmodule MediaAssistWeb.UserLive.Registration do
           </.header>
         </div>
 
-        <.form for={@form} id="registration_form" phx-submit="save" phx-change="validate">
+        <.form
+          for={@form}
+          id="registration_form"
+          action={~p"/users/log-in?_action=registered"}
+          method="post"
+          phx-submit="save"
+          phx-change="validate"
+          phx-trigger-action={@trigger_submit}
+        >
           <.input
             field={@form[:email]}
             type="email"
@@ -31,6 +45,14 @@ defmodule MediaAssistWeb.UserLive.Registration do
             spellcheck="false"
             required
             phx-mounted={JS.focus()}
+          />
+          <.input
+            field={@form[:password]}
+            type="password"
+            label="Password"
+            autocomplete="new-password"
+            spellcheck="false"
+            required
           />
 
           <.button phx-disable-with="Creating account..." class="btn btn-primary w-full">
@@ -49,42 +71,34 @@ defmodule MediaAssistWeb.UserLive.Registration do
   end
 
   def mount(_params, _session, socket) do
-    changeset = Accounts.change_user_email(%User{}, %{}, validate_unique: false)
+    changeset = Accounts.change_user_registration(%User{})
 
-    {:ok, socket |> assign(:page_title, "register") |> assign_form(changeset),
-     temporary_assigns: [form: nil]}
+    {:ok,
+     socket
+     |> assign(:page_title, "register")
+     |> assign(:trigger_submit, false)
+     |> assign_form(changeset)}
   end
 
   @impl true
   def handle_event("save", %{"user" => user_params}, socket) do
     case Accounts.register_user(user_params) do
-      {:ok, user} ->
-        {:ok, _} =
-          Accounts.deliver_login_instructions(
-            user,
-            &url(~p"/users/log-in/#{&1}")
-          )
-
-        {:noreply,
-         socket
-         |> put_flash(
-           :info,
-           "An email was sent to #{user.email}, please access it to confirm your account."
-         )
-         |> push_navigate(to: ~p"/users/log-in")}
+      {:ok, _user} ->
+        # The form still holds the credentials; trigger_submit posts it
+        # to the session controller, which logs the account in.
+        {:noreply, assign(socket, :trigger_submit, true)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign_form(socket, changeset)}
+        {:noreply, assign_form(socket, Map.put(changeset, :action, :insert))}
     end
   end
 
   def handle_event("validate", %{"user" => user_params}, socket) do
-    changeset = Accounts.change_user_email(%User{}, user_params, validate_unique: false)
+    changeset = Accounts.change_user_registration(%User{}, user_params)
     {:noreply, assign_form(socket, Map.put(changeset, :action, :validate))}
   end
 
   defp assign_form(socket, %Ecto.Changeset{} = changeset) do
-    form = to_form(changeset, as: "user")
-    assign(socket, form: form)
+    assign(socket, :form, to_form(changeset, as: "user"))
   end
 end

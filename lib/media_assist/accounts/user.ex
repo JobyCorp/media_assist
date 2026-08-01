@@ -18,6 +18,20 @@ defmodule MediaAssist.Accounts.User do
   end
 
   @doc """
+  A user changeset for registration: email + password, both required.
+  No email verification — accounts are usable immediately.
+
+  See `password_changeset/3` for the `:hash_password` option.
+  """
+  def registration_changeset(user, attrs, opts \\ []) do
+    user
+    |> cast(attrs, [:email, :password])
+    |> validate_email(opts)
+    |> validate_confirmation(:password, message: "does not match password")
+    |> validate_password(opts)
+  end
+
+  @doc """
   A user changeset for registering or changing the email.
 
   It requires the email to change otherwise an error is added.
@@ -44,8 +58,11 @@ defmodule MediaAssist.Accounts.User do
       |> validate_length(:email, max: 160)
 
     if Keyword.get(opts, :validate_unique, true) do
+      # Uniqueness rides on the DB constraint alone: joby_kit 0.2.0's
+      # translate_error crashes on unsafe_validate_unique's list-valued
+      # error opts (fields: [:email]), and live validation already ran
+      # with validate_unique: false, so the UX is unchanged.
       changeset
-      |> unsafe_validate_unique(:email, MediaAssist.Repo)
       |> unique_constraint(:email)
       |> validate_email_changed()
     else

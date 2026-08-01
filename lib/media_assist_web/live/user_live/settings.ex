@@ -71,19 +71,6 @@ defmodule MediaAssistWeb.UserLive.Settings do
   end
 
   @impl true
-  def mount(%{"token" => token}, _session, socket) do
-    socket =
-      case Accounts.update_user_email(socket.assigns.current_scope.user, token) do
-        {:ok, _user} ->
-          put_flash(socket, :info, "Email changed successfully.")
-
-        {:error, _} ->
-          put_flash(socket, :error, "Email change link is invalid or it has expired.")
-      end
-
-    {:ok, push_navigate(socket, to: ~p"/users/settings")}
-  end
-
   def mount(_params, _session, socket) do
     user = socket.assigns.current_scope.user
     email_changeset = Accounts.change_user_email(user, %{}, validate_unique: false)
@@ -118,18 +105,18 @@ defmodule MediaAssistWeb.UserLive.Settings do
     user = socket.assigns.current_scope.user
     true = Accounts.sudo_mode?(user)
 
-    case Accounts.change_user_email(user, user_params) do
-      %{valid?: true} = changeset ->
-        Accounts.deliver_user_update_email_instructions(
-          Ecto.Changeset.apply_action!(changeset, :insert),
-          user.email,
-          &url(~p"/users/settings/confirm-email/#{&1}")
-        )
+    case Accounts.update_user_email(user, user_params) do
+      {:ok, user} ->
+        {:noreply,
+         socket
+         |> assign(:current_email, user.email)
+         |> assign(
+           :email_form,
+           to_form(Accounts.change_user_email(user, %{}, validate_unique: false))
+         )
+         |> put_flash(:info, "Email updated.")}
 
-        info = "A link to confirm your email change has been sent to the new address."
-        {:noreply, socket |> put_flash(:info, info)}
-
-      changeset ->
+      {:error, changeset} ->
         {:noreply, assign(socket, :email_form, to_form(changeset, action: :insert))}
     end
   end

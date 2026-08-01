@@ -69,7 +69,6 @@ defmodule MediaAssistWeb.Router do
       live "/settings/index", SettingsLive.Index, :index
       live "/settings/tokens", SettingsLive.Tokens, :index
       live "/users/settings", UserLive.Settings, :edit
-      live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
     end
 
     post "/users/update-password", UserSessionController, :update_password
@@ -85,7 +84,6 @@ defmodule MediaAssistWeb.Router do
       live "/library/:id", LibraryItemLive, :show
       live "/users/register", UserLive.Registration, :new
       live "/users/log-in", UserLive.Login, :new
-      live "/users/log-in/:token", UserLive.Confirmation, :new
     end
 
     post "/users/log-in", UserSessionController, :create
