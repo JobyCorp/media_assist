@@ -38,19 +38,24 @@ const TerminalRiser = {
       requestAnimationFrame(() => { const i = this.input(); if (i) i.value = "" })
     })
     this.onKeydown = e => {
-      const editing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName) ||
-        document.activeElement?.isContentEditable
-      if (e.key === "/" && !editing) {
+      // composedPath sees through shadow DOM (e.g. the Tidewave panel);
+      // a retargeted event means the key was typed in someone else's
+      // surface — never ours to hijack.
+      const target = e.composedPath ? e.composedPath()[0] : e.target
+      const foreign = target !== e.target
+      const editing = target instanceof HTMLElement &&
+        (/^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName) || target.isContentEditable)
+      if (e.key === "/" && !editing && !foreign) {
         e.preventDefault()
         this.setOpen(true)
-      } else if (e.key === "Escape" && this.isOpen()) {
+      } else if (e.key === "Escape" && !foreign && this.isOpen()) {
         this.setOpen(false)
       }
     }
     window.addEventListener("keydown", this.onKeydown)
     // Live navigation rebuilds the sticky riser's DOM; reopen if the
-    // session had it open (state survives in a window global).
-    if (window.__riserOpen) this.setOpen(true)
+    // session had it open — visually only, without grabbing focus.
+    if (window.__riserOpen) this.setOpen(true, {focus: false})
   },
   updated() {
     // Every server patch re-syncs attributes from server HTML, which
@@ -58,11 +63,14 @@ const TerminalRiser = {
     // so busy/reply updates can't slam the riser shut.
     this.applyOpenState(!!window.__riserOpen)
     // New transcript lines (or busy → idle) keep the scrollback pinned
-    // to the bottom and hand focus back once the input re-enables.
+    // to the bottom. Reclaim focus only when it is unclaimed or already
+    // inside the riser — never steal it from another surface.
     if (this.isOpen()) {
       this.scrollToEnd()
       const input = this.input()
-      if (input && !input.disabled && document.activeElement !== input) input.focus()
+      const active = document.activeElement
+      const focusIsFree = !active || active === document.body || this.el.contains(active)
+      if (input && !input.disabled && focusIsFree && active !== input) input.focus()
     }
   },
   destroyed() {
@@ -82,11 +90,11 @@ const TerminalRiser = {
     this.el.toggleAttribute("data-riser-open", open)
     this.toggleEl.setAttribute("aria-expanded", String(open))
   },
-  setOpen(open) {
+  setOpen(open, {focus = true} = {}) {
     window.__riserOpen = open
     this.applyOpenState(open)
     if (open) {
-      this.input()?.focus()
+      if (focus) this.input()?.focus()
       this.scrollToEnd()
     }
   },

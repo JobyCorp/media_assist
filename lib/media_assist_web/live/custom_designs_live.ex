@@ -31,13 +31,13 @@ defmodule MediaAssistWeb.CustomDesignsLive do
           <h1 class="text-3xl font-semibold leading-tight">Custom Designs</h1>
           <p class="mt-2 max-w-3xl text-sm text-base-content/70">
             This app's generic composites and domain components. Kit-curated
-            wrappers and the contract live on <.link navigate={~p"/design"} class="link link-primary">/design</.link>.
+            wrappers and the contract live on <.link navigate="/design" class="link link-primary">/design</.link>.
           </p>
         </header>
 
         <JobyKit.PageComponent.custom_page_component
           manifest={MediaAssistWeb.DesignManifest}
-          back_to={~p"/design"}
+          back_to="/design"
         />
       </div>
     </Layouts.app>

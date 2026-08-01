@@ -64,16 +64,14 @@ defmodule MediaAssistWeb.ChatComponents do
           ▲
         </span>
         <span class="flex min-w-0 flex-1 items-center gap-2 group-data-[riser-open]/riser:hidden">
-          <span class="whitespace-nowrap">
-            <span class="text-accent">{@handle}@media_assist</span><span class="text-base-content/40">:~$</span>
-          </span>
+          <span class="whitespace-nowrap text-accent">~$</span>
           <span class="cursor-blink text-accent" aria-hidden="true">▮</span>
           <span class="truncate text-base-content/35">
             ask about the library, or request something new
           </span>
         </span>
         <span class="hidden min-w-0 flex-1 truncate text-base-content/50 group-data-[riser-open]/riser:inline">
-          chat — <span class="text-accent">{@handle}@media_assist</span>
+          chat
         </span>
         <span class="hidden shrink-0 text-xs text-base-content/30 sm:inline">
           <span class="group-data-[riser-open]/riser:hidden">[/] chat · </span>[esc] close
@@ -102,8 +100,8 @@ defmodule MediaAssistWeb.ChatComponents do
           phx-submit="send"
           class="flex items-center gap-2 border-t border-base-content/10 px-4 py-2.5 text-sm"
         >
-          <label for={"#{@id}-input"} class="select-none whitespace-nowrap">
-            <span class="text-accent">{@handle}@media_assist</span><span class="text-base-content/40">:~$</span>
+          <label for={"#{@id}-input"} class="select-none whitespace-nowrap text-accent">
+            ~$
           </label>
           <input
             id={"#{@id}-input"}

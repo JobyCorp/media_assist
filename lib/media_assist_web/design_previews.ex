@@ -141,7 +141,8 @@ defmodule MediaAssistWeb.DesignPreviews do
       ]}
     >
       <:session>
-        <span class="text-base-content/70">jody@media_assist</span>
+        <span class="text-base-content/70">settings</span>
+        <span class="text-base-content/70">log out</span>
       </:session>
     </CompositeComponents.status_bar>
     """

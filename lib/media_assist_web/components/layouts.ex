@@ -19,10 +19,17 @@ defmodule MediaAssistWeb.Layouts do
     %{key: "feed", label: "feed", href: "/", index: 0},
     %{key: "library", label: "library", href: "/library", index: 1},
     %{key: "requests", label: "requests", href: "/requests", index: 2},
-    %{key: "discover", label: "discover", href: "/discover", index: 3},
+    %{key: "discover", label: "discover", href: "/discover", index: 3}
+  ]
+
+  # The design surfaces are dev tooling — their windows only exist where
+  # their routes do (see the :dev_routes block in the router).
+  @dev_nav_links [
     %{key: "design", label: "design", href: "/design", index: 8},
     %{key: "custom-designs", label: "custom", href: "/custom-designs", index: 9}
   ]
+
+  @dev_routes Application.compile_env(:media_assist, :dev_routes)
 
   attr :flash, :map, required: true
   attr :current_scope, :map, default: nil
@@ -43,13 +50,11 @@ defmodule MediaAssistWeb.Layouts do
         <CompositeComponents.status_bar active={@active_nav} links={nav_links()}>
           <:session>
             <%= if @current_scope do %>
-              <span class="hidden text-base-content/70 sm:inline">{@handle}@media_assist</span>
               <.link navigate={~p"/settings"} class="hover:text-base-content">settings</.link>
               <.link href={~p"/users/log-out"} method="delete" class="hover:text-base-content">
                 log out
               </.link>
             <% else %>
-              <span class="hidden text-base-content/40 sm:inline">guest session</span>
               <.link href={~p"/users/log-in"} class="hover:text-base-content">log in</.link>
               <.link href={~p"/users/register"} class="text-accent hover:text-accent/80">
                 register
@@ -71,7 +76,9 @@ defmodule MediaAssistWeb.Layouts do
     """
   end
 
-  defp nav_links, do: @nav_links
+  defp nav_links do
+    if @dev_routes, do: @nav_links ++ @dev_nav_links, else: @nav_links
+  end
 
   defp handle(%{user: %{email: email}}) when is_binary(email) do
     email |> String.split("@") |> hd()

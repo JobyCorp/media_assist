@@ -23,20 +23,6 @@ defmodule MediaAssistWeb.Router do
   end
 
   scope "/", MediaAssistWeb do
-    pipe_through :browser
-
-    live "/design", DesignSystemLive, :index
-    live "/custom-designs", CustomDesignsLive, :index
-  end
-
-  scope "/" do
-    pipe_through :api
-
-    get "/design.json", JobyKit.ManifestController, :show,
-      private: %{joby_kit_manifest: MediaAssistWeb.DesignManifest}
-  end
-
-  scope "/", MediaAssistWeb do
     pipe_through :mcp
 
     post "/mcp", McpController, :handle
@@ -45,6 +31,20 @@ defmodule MediaAssistWeb.Router do
 
   if Application.compile_env(:media_assist, :dev_routes) do
     import Phoenix.LiveDashboard.Router
+
+    scope "/", MediaAssistWeb do
+      pipe_through :browser
+
+      live "/design", DesignSystemLive, :index
+      live "/custom-designs", CustomDesignsLive, :index
+    end
+
+    scope "/" do
+      pipe_through :api
+
+      get "/design.json", JobyKit.ManifestController, :show,
+        private: %{joby_kit_manifest: MediaAssistWeb.DesignManifest}
+    end
 
     scope "/dev" do
       pipe_through :browser

@@ -26,13 +26,13 @@ defmodule MediaAssistWeb.DesignSystemLive do
           <h1 class="text-3xl font-semibold leading-tight">Design System</h1>
           <p class="mt-2 max-w-3xl text-sm text-base-content/70">
             JobyKit's curated wrapper inventory and contract. Composites and domain
-            components live on <.link navigate={~p"/custom-designs"} class="link link-primary">/custom-designs</.link>.
+            components live on <.link navigate="/custom-designs" class="link link-primary">/custom-designs</.link>.
           </p>
         </header>
 
         <JobyKit.PageComponent.page_component
           manifest={MediaAssistWeb.DesignManifest}
-          custom_path={~p"/custom-designs"}
+          custom_path="/custom-designs"
         />
       </div>
     </Layouts.app>

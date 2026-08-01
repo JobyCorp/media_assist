@@ -20,7 +20,6 @@ defmodule MediaAssistWeb.UserSessionControllerTest do
       # Now do a logged in request and assert on the menu
       conn = get(conn, ~p"/")
       response = html_response(conn, 200)
-      assert response =~ hd(String.split(user.email, "@")) <> "@media_assist"
       assert response =~ ~p"/settings"
       assert response =~ ~p"/users/log-out"
     end
