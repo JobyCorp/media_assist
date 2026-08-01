@@ -166,7 +166,13 @@ defmodule MediaAssist.Integrations.ArrClient do
 
     # Requesting images turns pagination on (default 100/page) — walk
     # every page so long histories import completely.
-    fetch_trakt_pages(conn, "/users/#{username}/watched/#{noun}", [extended: "full,images"], 1, [])
+    fetch_trakt_pages(
+      conn,
+      "/users/#{username}/watched/#{noun}",
+      [extended: "full,images"],
+      1,
+      []
+    )
   end
 
   @trakt_page_size 200

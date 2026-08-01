@@ -107,6 +107,14 @@ defmodule MediaAssistWeb.DesignManifest do
     preview: &DesignPreviews.tree_nav_preview/1
   )
 
+  # No preview: the daisyUI modal is fixed-position and would overlay the
+  # design page itself.
+  component(CompositeComponents, :modal,
+    category: :composite,
+    daisy_basis: "modal",
+    summary: "Server-controlled modal: caller owns `show`; ✕/backdrop/Esc push `on_cancel`."
+  )
+
   # -------------------------------------------------------------------- domain
 
   component(MediaAssistWeb.MediaComponents, :media_card,

@@ -17,6 +17,11 @@ defmodule MediaAssistWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :mcp do
+    plug :accepts, ["json"]
+    plug MediaAssistWeb.McpAuth
+  end
+
   scope "/", MediaAssistWeb do
     pipe_through :browser
 
@@ -29,6 +34,13 @@ defmodule MediaAssistWeb.Router do
 
     get "/design.json", JobyKit.ManifestController, :show,
       private: %{joby_kit_manifest: MediaAssistWeb.DesignManifest}
+  end
+
+  scope "/", MediaAssistWeb do
+    pipe_through :mcp
+
+    post "/mcp", McpController, :handle
+    get "/mcp", McpController, :method_not_allowed
   end
 
   if Application.compile_env(:media_assist, :dev_routes) do
@@ -55,6 +67,7 @@ defmodule MediaAssistWeb.Router do
       live "/settings/ai-gateway", SettingsLive.AiGateway, :index
       live "/settings/connections", SettingsLive.Connections, :index
       live "/settings/index", SettingsLive.Index, :index
+      live "/settings/tokens", SettingsLive.Tokens, :index
       live "/users/settings", UserLive.Settings, :edit
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
     end

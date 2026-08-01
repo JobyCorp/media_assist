@@ -36,8 +36,7 @@ config :media_assist, Oban,
     {Oban.Plugins.Pruner, max_age: 86_400},
     # Frequent tick; the scheduler itself decides whether a sync is due
     # from the runtime `sync_interval_minutes` setting.
-    {Oban.Plugins.Cron,
-     crontab: [{"*/10 * * * *", MediaAssist.Media.SyncSchedulerWorker}]}
+    {Oban.Plugins.Cron, crontab: [{"*/10 * * * *", MediaAssist.Media.SyncSchedulerWorker}]}
   ]
 
 # Configure the endpoint

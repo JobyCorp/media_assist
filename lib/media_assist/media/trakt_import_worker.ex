@@ -29,7 +29,8 @@ defmodule MediaAssist.Media.TraktImportWorker do
     user = Accounts.get_user!(user_id)
 
     with {:username, username} when is_binary(username) <- {:username, user.trakt_username},
-         {:connection, [connection | _rest]} <- {:connection, Integrations.list_connections("trakt")} do
+         {:connection, [connection | _rest]} <-
+           {:connection, Integrations.list_connections("trakt")} do
       results =
         for kind <- ["movie", "series"] do
           {kind, import_kind(connection, user, username, kind)}

@@ -209,7 +209,8 @@ defmodule MediaAssistWeb.LibraryItemLive do
                         :if={watch.favorite}
                         class="text-error/80"
                       > ♥</span><span :if={watch.rating} class="text-base-content/60">
-                        {watch.rating}/10</span><span :if={watch.liked == false} class="text-base-content/50">
+                        {watch.rating}/10
+                      </span><span :if={watch.liked == false} class="text-base-content/50">
                         ↓
                       </span><span
                         :if={watch.last_played_at}

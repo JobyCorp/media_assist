@@ -90,7 +90,11 @@ defmodule MediaAssistWeb.SettingsLive.Connections do
      |> put_flash(:info, message)}
   end
 
-  def handle_event("map_trakt", %{"trakt" => %{"user_id" => user_id, "username" => username}}, socket) do
+  def handle_event(
+        "map_trakt",
+        %{"trakt" => %{"user_id" => user_id, "username" => username}},
+        socket
+      ) do
     {:ok, user} = Accounts.set_trakt_username(Accounts.get_user!(user_id), username)
 
     message =

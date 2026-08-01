@@ -17,6 +17,7 @@ defmodule MediaAssistWeb.SettingsComponents do
     %{key: "ai-gateway", label: "ai-gateway", href: "/settings/ai-gateway"},
     %{key: "connections", label: "connections", href: "/settings/connections"},
     %{key: "index", label: "index", href: "/settings/index"},
+    %{key: "tokens", label: "tokens", href: "/settings/tokens"},
     %{key: "account", label: "account", href: "/users/settings", external: true}
   ]
 
@@ -27,7 +28,7 @@ defmodule MediaAssistWeb.SettingsComponents do
         ...page content...
       </.settings_shell>
   """
-  attr :active, :string, required: true, values: ~w(ai-gateway connections index)
+  attr :active, :string, required: true, values: ~w(ai-gateway connections index tokens)
   attr :rest, :global
 
   slot :inner_block, required: true

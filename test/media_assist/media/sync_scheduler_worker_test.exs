@@ -30,8 +30,7 @@ defmodule MediaAssist.Media.SyncSchedulerWorkerTest do
   defp stamp_last_synced(minutes_ago: minutes) do
     Integrations.get_index_settings()
     |> Ecto.Changeset.change(
-      last_synced_at:
-        DateTime.utc_now(:second) |> DateTime.add(-minutes, :minute)
+      last_synced_at: DateTime.utc_now(:second) |> DateTime.add(-minutes, :minute)
     )
     |> Repo.insert_or_update!()
   end

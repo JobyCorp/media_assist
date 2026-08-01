@@ -6,7 +6,7 @@ defmodule MediaAssist.Accounts do
   import Ecto.Query, warn: false
   alias MediaAssist.Repo
 
-  alias MediaAssist.Accounts.{User, UserToken, UserNotifier}
+  alias MediaAssist.Accounts.{ApiToken, User, UserToken, UserNotifier}
 
   ## Database getters
 
@@ -305,6 +305,87 @@ defmodule MediaAssist.Accounts do
   """
   def delete_user_session_token(token) do
     Repo.delete_all(from(UserToken, where: [token: ^token, context: "session"]))
+    :ok
+  end
+
+  ## API tokens (MCP)
+
+  # Skip the last_used_at write when the stamp is fresher than this, so
+  # hot agent sessions don't turn every tool call into an UPDATE.
+  @api_token_touch_seconds 60
+
+  @doc """
+  Creates an API token for the user.
+
+  Returns `{:ok, plaintext, token}` — the plaintext is not stored and
+  cannot be shown again.
+  """
+  def create_api_token(%User{} = user, attrs) do
+    {plaintext, changeset} = ApiToken.build(user.id, attrs)
+
+    with {:ok, token} <- Repo.insert(changeset) do
+      {:ok, plaintext, token}
+    end
+  end
+
+  @doc """
+  Lists all of the user's API tokens, active and revoked, newest first.
+  """
+  def list_api_tokens(%User{} = user) do
+    Repo.all(from t in ApiToken, where: t.user_id == ^user.id, order_by: [desc: t.inserted_at])
+  end
+
+  @doc """
+  Revokes the user's API token. Idempotent; the row is kept for audit.
+  """
+  def revoke_api_token(%User{} = user, id) do
+    case Repo.get_by(ApiToken, id: id, user_id: user.id) do
+      nil ->
+        {:error, :not_found}
+
+      %ApiToken{revoked_at: nil} = token ->
+        token |> Ecto.Changeset.change(revoked_at: DateTime.utc_now(:second)) |> Repo.update()
+
+      %ApiToken{} = token ->
+        {:ok, token}
+    end
+  end
+
+  @doc """
+  Verifies a plaintext API token and returns its user.
+
+  Rejects revoked tokens. Touches `last_used_at`, throttled to one
+  write per #{@api_token_touch_seconds}s.
+  """
+  def verify_api_token(plaintext) when is_binary(plaintext) do
+    hash = ApiToken.hash(plaintext)
+
+    query =
+      from t in ApiToken,
+        join: u in assoc(t, :user),
+        where: t.token_hash == ^hash and is_nil(t.revoked_at),
+        select: {u, t}
+
+    case Repo.one(query) do
+      {user, token} ->
+        touch_api_token(token)
+        {:ok, user}
+
+      nil ->
+        :error
+    end
+  end
+
+  def verify_api_token(_), do: :error
+
+  defp touch_api_token(%ApiToken{} = token) do
+    now = DateTime.utc_now(:second)
+
+    if is_nil(token.last_used_at) or
+         DateTime.diff(now, token.last_used_at) >= @api_token_touch_seconds do
+      Repo.update_all(from(t in ApiToken, where: t.id == ^token.id), set: [last_used_at: now])
+    end
+
     :ok
   end
 

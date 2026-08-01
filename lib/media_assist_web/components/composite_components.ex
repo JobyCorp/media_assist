@@ -246,4 +246,52 @@ defmodule MediaAssistWeb.CompositeComponents do
     </div>
     """
   end
+
+  @doc """
+  A server-controlled modal over the daisyUI `modal` primitive. Rendered
+  only while `show` is true; `on_cancel` names the LiveView event pushed
+  by the ✕ button, the backdrop, and Escape — the caller owns the state.
+
+      <.modal id="token-modal" show={@modal_open} on_cancel="close_modal">
+        <:title>tokens generate</:title>
+        ...body...
+      </.modal>
+  """
+  attr :id, :string, required: true
+  attr :show, :boolean, default: false
+  attr :on_cancel, :string, required: true, doc: "LiveView event name pushed to dismiss."
+  attr :rest, :global
+
+  slot :title, required: true, doc: "Rendered as the modal's `$ command` line."
+  slot :inner_block, required: true
+
+  def modal(assigns) do
+    ~H"""
+    <div
+      :if={@show}
+      id={@id}
+      data-component="MediaAssistWeb.CompositeComponents.modal"
+      class="modal modal-open"
+      phx-window-keydown={@on_cancel}
+      phx-key="escape"
+      role="dialog"
+      aria-modal="true"
+      {@rest}
+    >
+      <div class="modal-box max-w-md rounded-none border border-base-content/20 bg-base-200 shadow-none">
+        <div class="mb-4 flex items-start justify-between gap-4">
+          <p class="text-sm">
+            <span class="select-none text-base-content/40">$ </span>
+            <span class="font-medium text-accent">{render_slot(@title)}</span>
+          </p>
+          <CoreComponents.button size="sm" phx-click={@on_cancel} aria-label="close">
+            ✕
+          </CoreComponents.button>
+        </div>
+        {render_slot(@inner_block)}
+      </div>
+      <div class="modal-backdrop bg-base-300/60" phx-click={@on_cancel} aria-hidden="true"></div>
+    </div>
+    """
+  end
 end
