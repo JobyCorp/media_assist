@@ -1,3 +1,19 @@
+## Prod
+
+- Host: **Proxmox VM 303 on `pve2`**, guest hostname **`phx1`**,
+  `192.168.68.70`, SSH alias **`phx1`**. This app listens on **`:4001`**.
+- **Shares the VM with `joby`** (the personal site, on `:4000`). The VM is
+  named for joby, not for this app — anything you do to the box hits both.
+- Served by Traefik on the **docker host** at **https://ma.local.joby.gg**
+  → `http://phx1.local.joby.gg:4001`. The route
+  (`homelab-traefik-stack` → `config.d/docker/ma.yml`) targets the
+  **hostname, not the IP** — it hardcoded the IP until 2026-08-05
+  (`01a2018`), so every DHCP flap 502'd it.
+- The `.70` lease is a **DHCP reservation on the Deco** (MAC
+  `BC:24:11:16:B1:C9`); pi-hole is not the DHCP server, never add it there.
+- There is **no `DEPLOY.md` in this repo** — deployment facts live here and
+  in orchester's service registry. Verify against the box before trusting.
+
 <!-- jobykit:start -->
 ## JobyKit — read this before writing UI
 
